@@ -21,7 +21,7 @@ app.use(passport.initialize());
 require('./middleware/passport')(passport);
 
 const authRoutes =  require('./routes/auth');
-const watchRoutes = require('./routes/watch');
+const watchRoutes = require('./routes/categories');
 
 app.use('/user', authRoutes);
 app.use('/watch', watchRoutes);
