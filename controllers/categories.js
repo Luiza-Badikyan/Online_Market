@@ -2,6 +2,7 @@ const ObjectId = require('mongoose').Types.ObjectId;
 // const Watches= require('../models/Watches');
 const Categories = require('./../models/Categories');
 const Products = require('./../models/Products');
+const { URL } = require('url');
 
 module.exports.getAll = async function (req, res) {
     try {
@@ -59,15 +60,21 @@ module.exports.deleteOne = async function (req, res) {
 
 module.exports.create = async function (req, res) {
     try {
+        const file = req.file;
+        const image = `${req.protocol}://${req.headers.host}/uploads/${file.filename}`;
+
         const product = new Products({
             title: req.body.title,
             slug: req.body.slug,
-            image: req.body.image,
+            image,
             description: req.body.description,
             category: req.body.category
         });
+
         await product.save();
+
         res.status(201).json({
+            product,
             message: 'Products is created'
         });
     } catch (e) {
@@ -99,3 +106,10 @@ module.exports.update = async function (req, res) {
         });
     }
 };
+
+
+
+// Image upload
+
+
+/** API path that will upload the files */

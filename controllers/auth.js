@@ -40,15 +40,16 @@ module.exports.login = async function(req, res) {
     console.log(req.body.email);
     console.log(req.body.password);
 
-    const candidate = await Users.findOne({email: req.body.email});
-
+    const candidate = await Users.findOne({email: req.body.email}).populate('role');
+    console.log(candidate);
     if (candidate) {
         const password = bcrypt.compareSync(req.body.password, candidate.password);
         console.log(password);
         if (password) {
             const token = jwt.sign({
                 email: candidate.email,
-                userId: candidate._id
+                userId: candidate._id,
+                role: candidate.role.name
             }, keys.jwt, {expiresIn: 60*60});
 
             res.status(200).json({
