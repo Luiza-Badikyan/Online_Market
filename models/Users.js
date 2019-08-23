@@ -20,6 +20,19 @@ const adminSchema = new Schema({
         type: String,
         required: true
     },
+    cart: [
+        {
+            product: {
+                type: Schema.Types.ObjectId,
+                ref: 'products',
+                required: true
+            },
+            quantity: {
+                type: Number,
+                required: true
+            }
+        }
+    ],
     role: {
         type: Schema.Types.ObjectId,
         ref: 'roles',

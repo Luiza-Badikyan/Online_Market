@@ -24,6 +24,7 @@ module.exports.register = async function(req, res) {
                 lastName: req.body.lastName,
                 email: req.body.email,
                 password: bcrypt.hashSync(password, salt),
+                basket: [],
                 role: role._id
             });
 
@@ -47,10 +48,17 @@ module.exports.login = async function(req, res) {
         console.log(password);
         if (password) {
             const token = jwt.sign({
+                /////////////////////////////////
+
+                firstName: candidate.firstName,
+                lastName: candidate.lastName,
+                basket: candidate.basket,
+
+                //////////////////////////////////
                 email: candidate.email,
                 userId: candidate._id,
                 role: candidate.role.name
-            }, keys.jwt, {expiresIn: 60*60});
+            }, keys.jwt, {expiresIn: 60*60*24});
 
             res.status(200).json({
                 token: `Bearer ${token}`
@@ -85,3 +93,9 @@ module.exports.getUsers = async function (req, res) {
         console.log(e);
     }
 };
+
+// module.exports.add = async function (req, res) {
+//     try {
+//         const obj =
+//     }
+// }

@@ -8,6 +8,8 @@ const cors = require('cors');
 
 const port = 3000;
 
+app.use(express.static('public'));
+
 app.use(function(req, res, next) { //allow cross origin requests
     res.setHeader("Access-Control-Allow-Methods", "POST, PUT, OPTIONS, DELETE, GET");
     res.header("Access-Control-Allow-Origin", req.headers.origin);
@@ -38,5 +40,4 @@ app.listen(port, () => {
     console.log(console.log(`Server is running ${port} ...`))
 });
 
-// module.exports = app;
 
