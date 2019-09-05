@@ -33,6 +33,12 @@ const adminSchema = new Schema({
             }
         }
     ],
+    image: {
+        type: String
+    },
+    date: {
+        type: String
+    },
     role: {
         type: Schema.Types.ObjectId,
         ref: 'roles',

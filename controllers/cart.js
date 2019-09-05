@@ -1,15 +1,9 @@
 const Product = require('../models/Products');
 const Users = require('../models/Users');
 
-
-module.exports = {
-
-    async store(req, res, next) {
+module.exports.store = async function(req, res, next) {
 
         let user = await Users.findById(req.user._id);
-
-        // TODO: cart logic
-        // ....
 
         const product = await Product.findById(req.body.product);
         console.log(product._id);
@@ -18,9 +12,9 @@ module.exports = {
         console.log(req.body);
         let existingItem;
         user.cart.forEach(a => {
-           if (a.product == req.body.product){
-               existingItem = a
-           }
+            if (a.product == req.body.product){
+                existingItem = a
+            }
         });
         console.log('---------------------------', existingItem);
         if (existingItem) {
@@ -53,6 +47,23 @@ module.exports = {
             console.log('asdsfjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjisajdi');
         }
 
-    }
+};
 
+module.exports.getInfo =   async function (req, res) {
+    console.log('sasasas');
+
+    try {
+
+        let user = await Users.findById(req.user._id)
+            .populate('cart.product');
+
+        // const categories = await Categories.find();
+        // res.status(200).json({'sa' :'sa'});
+        res.status(200).json({user});
+
+        // const watches = await Watches.find({});
+        // res.status(200).json(watches);
+    } catch (e) {
+        console.log(e);
+    }
 };

@@ -89,11 +89,17 @@ module.exports.update = async function (req, res) {
             throw new Error('Product not found');
         }
 
+        const image = (req.file) ?
+            `${req.protocol}://${req.headers.host}/uploads/${req.file.filename}` : null;
+
         product.title = req.body.title;
-            product.slug = req.body.slug;
-            product.image = req.body.image;
-            product.description = req.body.description;
-            product.category = req.body.category;
+        product.slug = req.body.slug;
+        product.description = req.body.description;
+        product.category = req.body.category;
+
+        if (image) {
+            product.image = image;
+        }
 
         await product.save();
 

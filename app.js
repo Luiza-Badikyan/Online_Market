@@ -5,6 +5,7 @@ const mongoose = require('mongoose');  mongoose.set('useCreateIndex', true);
 const keys = require('./config/keys');
 const passport = require('passport');
 const cors = require('cors');
+const nodemailer = require('nodemailer');
 
 const port = 3000;
 

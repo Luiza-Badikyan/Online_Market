@@ -25,6 +25,8 @@ module.exports.register = async function(req, res) {
                 email: req.body.email,
                 password: bcrypt.hashSync(password, salt),
                 basket: [],
+                image: '',
+                date: '',
                 role: role._id
             });
 
@@ -94,8 +96,66 @@ module.exports.getUsers = async function (req, res) {
     }
 };
 
-// module.exports.add = async function (req, res) {
-//     try {
-//         const obj =
-//     }
-// }
+// Users Information Update
+module.exports.addInformation = async function (req, res, next) {
+    console.log('aaaaaaaaaaaaaaaaaaa');
+    try {
+        const user = await Users.findById(req.params.id);
+        console.log(req.params.id);
+        console.log(user);
+        if (!user) {
+            throw new Error('User is not found');
+        }
+
+        const image = (req.file) ?
+            `${req.protocol}://${req.headers.host}/uploads/${req.file.filename}` : null;
+
+        user.firstName = req.body.firstName;
+        user.lastName = req.body.lastName;
+        user.date = req.body.date;
+
+        if (image) {
+            user.image = image;
+        }
+
+        await  user.save();
+        res.status(200).json(user);
+
+    } catch (e) {
+        console.log(e);
+        res.status(404).json({
+            success: false,
+            message: e.message
+        })
+    }
+}
+
+// User Password Update
+module.exports.updatePassword = async function (req, res, next) {
+   try {
+        const body = req.body;
+        const user = await Users.findById(body.user_id);
+        if (!user) {
+            throw new Error('User is not found');
+        }
+        const password = bcrypt.compareSync(body.password, user.password);
+       
+        if (password) {
+            const salt = bcrypt.genSaltSync(10);
+            const newPassword = body.newPassword;
+            user.password = bcrypt.hashSync(newPassword, salt);
+            await user.save(); // update password
+            res.status(200).json(user);
+        } else {
+            res.status(400).json({
+                message: 'Your password is incorrect'
+            })
+        }
+    } catch (e) {
+        console.log(e);
+        res.status(400).json({
+            success: false,
+            message: e.message
+        })
+    }
+}
