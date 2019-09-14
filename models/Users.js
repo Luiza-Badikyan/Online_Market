@@ -4,8 +4,7 @@ const Schema = mongoose.Schema;
 const adminSchema = new Schema({
     firstName: {
         type: String,
-        required: true,
-        unique: true
+        required: true
     },
     lastName: {
         type: String,
@@ -19,6 +18,12 @@ const adminSchema = new Schema({
     password: {
         type: String,
         required: true
+    },
+    resetPasswordToken: {
+      type: String,
+    },
+    resetPasswordExpires: {
+      type: Date,
     },
     cart: [
         {
@@ -37,7 +42,7 @@ const adminSchema = new Schema({
         type: String
     },
     date: {
-        type: String
+        type: Date,
     },
     role: {
         type: Schema.Types.ObjectId,

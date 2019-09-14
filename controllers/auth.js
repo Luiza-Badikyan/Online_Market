@@ -3,13 +3,19 @@ const Roles = require('../models/Roles');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const keys = require('../config/keys');
+const nodemailer = require('nodemailer');
+const moment = require('moment');
+const crypto = require("crypto");
+
+
+
 
 // register
 module.exports.register = async function(req, res) {
     const candidate = await Users.findOne({email: req.body.email});
     if (candidate) {
         res.status(409).json({
-            message: 'This email is already registated'
+            message: 'This email is already registered'
         })
     } else {
         try {
@@ -24,9 +30,11 @@ module.exports.register = async function(req, res) {
                 lastName: req.body.lastName,
                 email: req.body.email,
                 password: bcrypt.hashSync(password, salt),
+                resetPasswordToken: null,
+                resetPasswordExpires: null,
                 basket: [],
-                image: '',
-                date: '',
+                image: null,
+                date: null,
                 role: role._id
             });
 
@@ -150,6 +158,134 @@ module.exports.updatePassword = async function (req, res, next) {
             res.status(400).json({
                 message: 'Your password is incorrect'
             })
+        }
+    } catch (e) {
+        console.log(e);
+        res.status(400).json({
+            success: false,
+            message: e.message
+        })
+    }
+}
+
+// Reset Password
+module.exports.resetPassword = async function (req, res, next) {
+    try {
+        const user = await Users.findOne({email: req.body.email});
+        console.log(user);
+        if (!user) {
+            throw new Error('User is not found');
+        }
+
+        const token = crypto.randomBytes(20).toString('hex');
+        console.log(token);
+
+        const url = 'http://localhost:4200/reset_password/link?token='+token+'&email='+req.body.email;
+        console.log(url);
+        user.resetPasswordToken = token;
+        user.resetPasswordExpires = moment().add(1, 'days');
+
+        user.save();
+
+        const transporter = nodemailer.createTransport({
+            host: "smtp.gmail.com",
+            port: 465,
+            secure: true,
+            auth: {
+                user: "youremail@gmail.com",
+                pass: "your_password"
+            }
+        });
+        const mailOptions = {
+            from: 'youremail@gmail.com',
+            to: 'youremail@gmail.com',
+            subject: 'Link to reset password',
+            text: `Please follow this link to reset your password...
+            ${url}
+            If you did not request this, please ignore this email and your password will remain unchanged.`
+        };
+
+        try {
+            await transporter.sendMail(mailOptions, function (err, res) {
+                console.log('res',res);
+                console.log('err',err);
+            });
+        } catch (e) {
+            console.log('e.message', e.message);
+            res.status(400).json({
+                success: false,
+                message: e.message
+            })
+        }
+
+
+    } catch (e) {
+        console.log(e);
+        res.status(400).json({
+            success: false,
+            message: e.message
+        })
+    }
+
+}
+
+// Check Token
+module.exports.checkToken = async function (req, res, next) {
+    try {
+        const user = await Users.findOne({email: req.params.email});
+        if (!user) {
+            throw new Error('User is not found');
+        } else {
+            const now = moment();
+            if (user.resetPasswordToken === req.params.token && moment(user.resetPasswordExpires).isAfter(now)) {
+                res.status(200).json(user);
+            } else {
+                console.log(now);
+                res.status(400).json({
+                    success: false,
+                    message: e.message
+                })
+            }
+        }
+    } catch (e) {
+        console.log('catch', e);
+        res.status(400).json({
+            success: false,
+            message: e.message
+        });
+    }
+}
+
+// Change Password
+module.exports.changePasswordToken = async function (req, res, next) {
+    try {
+
+        const user = await Users.findOne({email: req.params.email});
+        const now = moment();
+
+        if (!user) {
+            throw new Error('User is not found');
+        } else {
+            if (user.resetPasswordToken !== req.params.token || !moment(user.resetPasswordExpires).isAfter(now)) {
+                 console.log('Your reset password expires time is over');
+            } else {
+                if (req.body.newPassword !== req.body.confirmPassword) {
+                    console.log(req.body.newPassword);
+                    console.log(req.body.confirmPassword);
+                    console.log('Your password and confirmPassword must be the same. Pleas, try again');
+                } else {
+                    const salt = bcrypt.genSaltSync(10);
+                    const password = req.body.newPassword;
+                    user.password = bcrypt.hashSync(password, salt);
+                    user.resetPasswordToken = null;
+                    user.resetPasswordExpires = null;
+                    await user.save();
+                    res.status(200).json({
+                        success: true,
+                        message: 'Your password is changed'
+                    })
+                }
+            }
         }
     } catch (e) {
         console.log(e);

@@ -68,6 +68,7 @@ module.exports.create = async function (req, res) {
             slug: req.body.slug,
             image,
             description: req.body.description,
+            price: req.body.price,
             category: req.body.category
         });
 
@@ -95,6 +96,7 @@ module.exports.update = async function (req, res) {
         product.title = req.body.title;
         product.slug = req.body.slug;
         product.description = req.body.description;
+        product.price = req.body.price;
         product.category = req.body.category;
 
         if (image) {

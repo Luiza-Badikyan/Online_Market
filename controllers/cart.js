@@ -53,13 +53,11 @@ module.exports.getInfo =   async function (req, res) {
     console.log('sasasas');
 
     try {
+        let user = await Users.findById(req.user._id).select('-password -resetPasswordToken -resetPasswordExpires').populate('cart.product');
+        console.log('userna ',user);
 
-        let user = await Users.findById(req.user._id)
-            .populate('cart.product');
-
-        // const categories = await Categories.find();
         // res.status(200).json({'sa' :'sa'});
-        res.status(200).json({user});
+        res.status(200).json(user);
 
         // const watches = await Watches.find({});
         // res.status(200).json(watches);
