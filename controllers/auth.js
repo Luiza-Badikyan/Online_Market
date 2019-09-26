@@ -6,7 +6,45 @@ const keys = require('../config/keys');
 const nodemailer = require('nodemailer');
 const moment = require('moment');
 const crypto = require("crypto");
+const queryString = require('query-string');
 
+
+
+// register
+// module.exports.register = async function(req, res) {
+//     const candidate = await Users.findOne({email: req.body.email});
+//     if (candidate) {
+//         res.status(409).json({
+//             message: 'This email is already registered'
+//         })
+//     } else {
+//         try {
+//             const salt = bcrypt.genSaltSync(10);
+//             const password = req.body.password;
+//             const role = await Roles.findOne({
+//                 name: 'user'
+//             });
+//             if(!role) return res.status(500).end();
+//             const user = new Users({
+//                 firstName: req.body.firstName,
+//                 lastName: req.body.lastName,
+//                 email: req.body.email,
+//                 password: bcrypt.hashSync(password, salt),
+//                 resetPasswordToken: null,
+//                 resetPasswordExpires: null,
+//                 basket: [],
+//                 image: null,
+//                 date: null,
+//                 role: role._id
+//             });
+//
+//             await user.save(); // registration
+//             res.status(200).json(user);
+//         } catch (e) {
+//             console.log(e);
+//         }
+//     }
+// };
 
 
 
@@ -21,10 +59,10 @@ module.exports.register = async function(req, res) {
         try {
             const salt = bcrypt.genSaltSync(10);
             const password = req.body.password;
-            const role  = await Roles.findOne({
+            const roleId = await Roles.findOne({
                 name: 'user'
             });
-            if(!role) return res.status(500).end();
+            let role = req.body.role ? req.body.role : roleId._id;
             const user = new Users({
                 firstName: req.body.firstName,
                 lastName: req.body.lastName,
@@ -35,8 +73,10 @@ module.exports.register = async function(req, res) {
                 basket: [],
                 image: null,
                 date: null,
-                role: role._id
+                role: role
             });
+
+            console.log(user);
 
             await user.save(); // registration
             res.status(200).json(user);
@@ -45,6 +85,9 @@ module.exports.register = async function(req, res) {
         }
     }
 };
+
+
+
 
 // login
 module.exports.login = async function(req, res) {
@@ -64,7 +107,7 @@ module.exports.login = async function(req, res) {
                 lastName: candidate.lastName,
                 basket: candidate.basket,
 
-                //////////////////////////////////
+                /////////////////////////////////
                 email: candidate.email,
                 userId: candidate._id,
                 role: candidate.role.name
@@ -89,19 +132,65 @@ module.exports.login = async function(req, res) {
 // Get Users
 module.exports.getUsers = async function (req, res) {
     try {
-        // const products = await Products.find({
-        //     category: new ObjectId("5d495ae6ce4a43044f6177f3")
-        // }).populate('category');
-
-        // const categories = await Categories.find();
         const users = await Users.find();
         res.status(200).json(users);
 
-        // const watches = await Watches.find({});
-        // res.status(200).json(watches);
     } catch (e) {
         console.log(e);
     }
+};
+
+// _*_*_*_*_*_*_*_*_*_*_*_*_*_*_*_*_*_*_*_*_*_ \\
+
+// Get Users By Pagination
+module.exports.getUserByPagination = async function (req, res) {
+
+    try {
+        console.log('****', req.query.limit);
+        let page = +(req.query.page) || 0;
+        let limit = +(req.query.limit) || 10;
+
+        Users.find()
+            .skip(page*limit)
+            .limit(limit)
+            .exec(function (err, doc) {
+                console.log('error------> ',err);
+                if(err) { res.status(500).json(err); return; }
+                // console.log(doc);
+                res.status(200).send(doc);
+            })
+    } catch (e) {
+        console.log(e);
+    }
+};
+
+// _*_*_*_*_*_*_*_*_*_*_*_*_*_*_*_*_*_*_*_*_*_ \\
+
+// Get Roles
+module.exports.getRoles = async function (req, res) {
+    try {
+        const roles = await Roles.find();
+        res.status(200).json(roles);
+    } catch (e) {
+        console.log(e);
+    }
+};
+
+// Delete User
+module.exports.deleteOne = async function (req, res) {
+  try {
+      await Users.deleteOne({_id: req.params.id});
+      console.log(req.params.id);
+
+      res.status(200).json({
+          message: 'User deleted'
+      });
+  } catch (e) {
+      console.log(e);
+      res.status(200).json({
+          message: false
+      });
+  }
 };
 
 // Users Information Update
@@ -120,10 +209,16 @@ module.exports.addInformation = async function (req, res, next) {
 
         user.firstName = req.body.firstName;
         user.lastName = req.body.lastName;
-        user.date = req.body.date;
+        // user.date = req.body.date;
 
         if (image) {
             user.image = image;
+        }
+        if (req.body.data) {
+            user.date = req.body.data;
+        }
+        if (req.body.role) {
+            user.role = req.body.role;
         }
 
         await  user.save();
@@ -136,7 +231,7 @@ module.exports.addInformation = async function (req, res, next) {
             message: e.message
         })
     }
-}
+};
 
 // User Password Update
 module.exports.updatePassword = async function (req, res, next) {
@@ -166,7 +261,7 @@ module.exports.updatePassword = async function (req, res, next) {
             message: e.message
         })
     }
-}
+};
 
 // Reset Password
 module.exports.resetPassword = async function (req, res, next) {
@@ -227,7 +322,7 @@ module.exports.resetPassword = async function (req, res, next) {
         })
     }
 
-}
+};
 
 // Check Token
 module.exports.checkToken = async function (req, res, next) {
@@ -254,7 +349,7 @@ module.exports.checkToken = async function (req, res, next) {
             message: e.message
         });
     }
-}
+};
 
 // Change Password
 module.exports.changePasswordToken = async function (req, res, next) {
@@ -294,4 +389,4 @@ module.exports.changePasswordToken = async function (req, res, next) {
             message: e.message
         })
     }
-}
+};

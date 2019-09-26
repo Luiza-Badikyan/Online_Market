@@ -49,7 +49,7 @@ module.exports.store = async function(req, res, next) {
 
 };
 
-module.exports.getInfo =   async function (req, res) {
+module.exports.getInfo = async function (req, res) {
     console.log('sasasas');
 
     try {

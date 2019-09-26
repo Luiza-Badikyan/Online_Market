@@ -14,6 +14,9 @@ router.post('/login', controller.login);
 
 // // // //
 router.get('', controller.getUsers);
+router.get('/pagination', controller.getUserByPagination);
+router.get('/roles', controller.getRoles);
+router.delete('/:id', controller.deleteOne);
 router.put('/update_password', controller.updatePassword);
 router.post('/reset_password_link', controller.resetPassword);
 router.get('/reset_password/:email/:token', controller.checkToken);
